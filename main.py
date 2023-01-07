@@ -17,7 +17,7 @@ async def on_ready():
     url: str | None = dotenv.get_key(".env", "URL")
 
     if not channel_id:
-        _missing = ["Channel ID"]
+        _missing = ["CHANNEL_ID"]
         if not url:
             _missing.append("URL")
 
