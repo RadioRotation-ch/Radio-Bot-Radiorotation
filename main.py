@@ -9,11 +9,11 @@ from _helpers import _InvalidArgumentError, _MissingRequiredArgument, validate_u
 # no usage of os.environ because this should work multiple times on the same machine
 
 bot = pycord.Bot()
+channel_id: int | None = dotenv.get_key(".env", "CHANNEL_ID")
 
 
 @bot.event
 async def on_ready():
-    channel_id: int | None = dotenv.get_key(".env", "CHANNEL_ID")
     url: str | None = dotenv.get_key(".env", "URL")
 
     if not channel_id:
@@ -37,6 +37,7 @@ async def on_ready():
             "channel_id pointing to a voice channel",
             f"ChannelType.{str(channel.type)}",
         )
+    conn: pycord.VoiceClient = await channel.connect()
 
     if isinstance(channel, pycord.StageChannel):
         instance = None
@@ -49,12 +50,32 @@ async def on_ready():
             else:
                 raise _MissingRequiredArgument(["STAGE_INSTANCE_TOPIC"])
 
-    conn: pycord.VoiceClient = await channel.connect()
     for member in channel.members:
-        if member.id == bot.user.id and member.voice.suppress:
-            await member.edit(suppress=False)
+        if member.id == bot.user.id:
+            if member.voice.suppress:
+                await member.edit(suppress=False)
+            if member.voice.mute:
+                await member.edit(mute=False)
 
     conn.play(pycord.FFmpegPCMAudio(url))
+
+
+@bot.event
+async def on_voice_state_update(
+    member: pycord.Member, before: pycord.VoiceState, after: pycord.VoiceState
+):
+    if after.channel.id != channel_id:
+        return
+    if member.id == bot.user.id:
+        if after.mute:
+            await member.edit(mute=False)
+        if after.suppress and after.channel.type == pycord.ChannelType.stage_voice:
+            await member.edit(suppress=False)
+    else:
+        if not after.mute and after.channel.type == pycord.ChannelType.voice:
+            await member.edit(mute=True)
+        if not after.suppress and after.channel.type == pycord.ChannelType.stage_voice:
+            await member.edit(suppress=True)
 
 
 if __name__ == "__main__":
