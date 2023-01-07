@@ -62,7 +62,9 @@ async def on_ready():
 
 @bot.event
 async def on_voice_state_update(
-    member: pycord.Member, before: pycord.VoiceState, after: pycord.VoiceState
+    member: pycord.Member,
+    before: pycord.VoiceState,
+    after: pycord.VoiceState,
 ):
     if after.channel.id != channel_id:
         return
