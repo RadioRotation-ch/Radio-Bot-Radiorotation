@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 
 import discord as pycord
 import dotenv
@@ -37,10 +38,22 @@ async def on_ready():
             f"ChannelType.{str(channel.type)}",
         )
 
-    # if isinstance(channel, pycord.StageChannel):
-    # channel.
+    if isinstance(channel, pycord.StageChannel):
+        instance = None
+        with contextlib.suppress(Exception):
+            instance = await channel.fetch_instance()
+        if not instance:
+            if topic := dotenv.get_key(".env", "STAGE_INSTANCE_TOPIC"):
+                await channel.create_instance(topic=topic, reason="RadioRotationStream")
+
+            else:
+                raise _MissingRequiredArgument(["STAGE_INSTANCE_TOPIC"])
 
     conn: pycord.VoiceClient = await channel.connect()
+    for member in channel.members:
+        if member.id == bot.user.id and member.voice.suppress:
+            await member.edit(suppress=False)
+
     conn.play(pycord.FFmpegPCMAudio(url))
 
 
