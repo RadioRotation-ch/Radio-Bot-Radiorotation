@@ -67,7 +67,9 @@ async def on_voice_state_update(
     before: pycord.VoiceState,
     after: pycord.VoiceState,
 ):
-    if after.channel and after.channel.id != channel_id:
+    if not after.channel:
+        return
+    if after.channel.id != channel_id:
         return
     if member.id == bot.user.id:
         if after.mute:
