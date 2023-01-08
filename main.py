@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
 
 import discord as pycord
@@ -83,12 +82,7 @@ async def on_voice_state_update(
 
 
 if __name__ == "__main__":
-    token: str | None = dotenv.get_key(".env", "TOKEN")
-
-    if not token:
+    if token := dotenv.get_key(".env", "TOKEN"):
+        bot.run(token)
+    else:
         raise _MissingRequiredArgument(["TOKEN"])
-
-    async def start_helper():
-        await bot.start(token)
-
-    asyncio.run(start_helper())
