@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ("_MissingRequiredArgument", "_InvalidArgumentError", "validate_url")
 
 from urllib import parse
